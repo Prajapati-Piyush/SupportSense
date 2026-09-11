@@ -7,7 +7,49 @@
  * component, hook or query key changes.
  */
 
-export const API_MODE: "mock" | "http" = "mock";
+export const API_MODE: "mock" | "http" = "http";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+/**
+ * Standard typed HTTP fetch client for SupportSense backend.
+ * Configured with `credentials: "include"` to automatically transmit HTTP-only session cookies.
+ */
+export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = `${API_BASE_URL}${path}`;
+  const headers = new Headers(options.headers || {});
+  if (!headers.has("Content-Type") && options.body && typeof options.body === "string") {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
+
+  let data: unknown = null;
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+  }
+
+  if (!response.ok) {
+    const errorObj =
+      typeof data === "object" && data !== null && "error" in data
+        ? (data as { error?: { code?: string; message?: string } }).error
+        : undefined;
+    const errorCode = errorObj?.code || "API_ERROR";
+    const errorMessage = errorObj?.message || response.statusText || "Request failed";
+    throw new ApiRequestError(errorCode, errorMessage, response.status);
+  }
+
+  return data as T;
+}
 
 /** Simulated network latency, so loading states are real rather than theoretical. */
 export function delay<T>(value: T, ms = 260): Promise<T> {

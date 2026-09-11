@@ -12,9 +12,14 @@ import {
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import type { User } from "@/lib/types";
-import { getSessionUser, login as loginRequest } from "@/lib/api/auth";
-import { clearSessionCookies, readCookie, SESSION_COOKIE, writeSessionCookies } from "@/lib/session";
-import { homePathFor } from "@/lib/domain";
+import {
+  getMe,
+  login as loginRequest,
+  logout as logoutRequest,
+  DEMO_PASSWORD,
+} from "@/lib/api/auth";
+import { clearSessionCookies, writeSessionCookies } from "@/lib/session";
+import { users as seedUsers } from "@/mock/org";
 
 interface AuthContextValue {
   user: User | null;
@@ -32,23 +37,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  // Validate session against the Fastify backend on mount & page refresh
   useEffect(() => {
     let cancelled = false;
-    const userId = readCookie(SESSION_COOKIE);
-    if (!userId) {
-      setStatus("anonymous");
-      return;
-    }
-    getSessionUser(userId).then((found) => {
-      if (cancelled) return;
-      if (found) {
-        setUser(found);
-        setStatus("authenticated");
-      } else {
+
+    getMe()
+      .then((found) => {
+        if (cancelled) return;
+        if (found) {
+          writeSessionCookies(found.id, found.role);
+          setUser(found);
+          setStatus("authenticated");
+        } else {
+          clearSessionCookies();
+          setUser(null);
+          setStatus("anonymous");
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
         clearSessionCookies();
+        setUser(null);
         setStatus("anonymous");
-      }
-    });
+      });
+
     return () => {
       cancelled = true;
     };
@@ -69,22 +81,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [establish],
   );
 
-  /** One-click demo login. Same session mechanics, no password round-trip. */
+  /**
+   * One-click demo login now executes the real Fastify login with seeded credentials,
+   * establishing an authentic PostgreSQL session and HTTP-only cookie.
+   */
   const signInAs = useCallback<AuthContextValue["signInAs"]>(
     async (userId) => {
-      const next = await getSessionUser(userId);
-      if (next) establish(next);
+      const seedUser = seedUsers.find((u) => u.id === userId);
+      if (!seedUser) return null;
+
+      const next = await loginRequest({
+        email: seedUser.email,
+        password: DEMO_PASSWORD,
+      });
+      establish(next);
       return next;
     },
     [establish],
   );
 
-  const signOut = useCallback(() => {
-    clearSessionCookies();
-    setUser(null);
-    setStatus("anonymous");
-    queryClient.clear();
-    router.replace("/login");
+  const signOut = useCallback(async () => {
+    try {
+      await logoutRequest();
+    } finally {
+      clearSessionCookies();
+      setUser(null);
+      setStatus("anonymous");
+      queryClient.clear();
+      router.replace("/login");
+    }
   }, [queryClient, router]);
 
   const value = useMemo(
@@ -108,4 +133,4 @@ export function useCurrentUser(): User {
   return user;
 }
 
-export { homePathFor };
+export { homePathFor } from "@/lib/domain";
