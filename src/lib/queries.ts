@@ -187,7 +187,13 @@ export function useDocuments() {
     queryKey: queryKeys.documents(user.tenantId),
     queryFn: () => adminApi.listDocuments(user),
     refetchInterval: (query) =>
-      query.state.data?.some((d) => d.status === "QUEUED" || d.status === "PROCESSING")
+      query.state.data?.some(
+        (d) =>
+          d.status === "QUEUED" ||
+          d.status === "PROCESSING" ||
+          d.status === "uploaded" ||
+          d.status === "processing",
+      )
         ? PROCESSING_POLL_MS
         : false,
   });
@@ -199,7 +205,11 @@ export function useDocument(id: string) {
     queryKey: queryKeys.document(user.tenantId, id),
     queryFn: () => adminApi.getDocument(user, id),
     refetchInterval: (query) =>
-      query.state.data && (query.state.data.status === "QUEUED" || query.state.data.status === "PROCESSING")
+      query.state.data &&
+      (query.state.data.status === "QUEUED" ||
+        query.state.data.status === "PROCESSING" ||
+        query.state.data.status === "uploaded" ||
+        query.state.data.status === "processing")
         ? PROCESSING_POLL_MS
         : false,
   });
@@ -219,8 +229,9 @@ function useDocumentMutation<TInput>(fn: (input: TInput) => Promise<unknown>) {
 
 export function useUploadDocument() {
   const user = useCurrentUser();
-  return useDocumentMutation((input: { title: string; content: string }) =>
-    adminApi.uploadDocument(user, input),
+  return useDocumentMutation(
+    (input: { title: string; content?: string; file?: File }) =>
+      adminApi.uploadDocument(user, input),
   );
 }
 

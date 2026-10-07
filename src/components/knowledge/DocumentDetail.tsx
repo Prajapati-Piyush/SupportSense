@@ -67,7 +67,7 @@ export function DocumentDetail({ documentId }: { documentId: string }) {
             <Link href="/admin/documents" className={buttonClasses("ghost", "md")}>
               Back
             </Link>
-            {data.status === "FAILED" || data.status === "ACTIVE" ? (
+            {data.status === "FAILED" || data.status === "failed" || data.status === "ACTIVE" || data.status === "ready" ? (
               <Button
                 loading={reingest.isPending}
                 onClick={async () => {
@@ -83,7 +83,7 @@ export function DocumentDetail({ documentId }: { documentId: string }) {
                 Re-ingest
               </Button>
             ) : null}
-            {data.status === "ACTIVE" ? (
+            {data.status === "ACTIVE" || data.status === "ready" ? (
               <Button
                 variant="danger"
                 loading={archive.isPending}

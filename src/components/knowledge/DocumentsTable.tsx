@@ -22,7 +22,11 @@ export function DocumentsTable({ documents }: { documents: KbDocument[] }) {
   return (
     <ul>
       {documents.map((doc) => {
-        const inFlight = doc.status === "QUEUED" || doc.status === "PROCESSING";
+        const inFlight =
+          doc.status === "QUEUED" ||
+          doc.status === "PROCESSING" ||
+          doc.status === "uploaded" ||
+          doc.status === "processing";
         return (
           <li
             key={doc.id}
@@ -97,7 +101,7 @@ export function DocumentsTable({ documents }: { documents: KbDocument[] }) {
               </div>
 
               <div className={cn("flex shrink-0 flex-wrap items-center gap-1.5")}>
-                {doc.status === "FAILED" ? (
+                {doc.status === "FAILED" || doc.status === "failed" ? (
                   <Button
                     size="sm"
                     loading={reingest.isPending}
@@ -111,7 +115,7 @@ export function DocumentsTable({ documents }: { documents: KbDocument[] }) {
                   </Button>
                 ) : null}
 
-                {doc.status === "ARCHIVED" ? (
+                {doc.status === "ARCHIVED" || doc.status === "archived" ? (
                   <Button
                     size="sm"
                     loading={restore.isPending}
@@ -123,7 +127,7 @@ export function DocumentsTable({ documents }: { documents: KbDocument[] }) {
                     <Undo2 className="size-3.5" aria-hidden />
                     Restore
                   </Button>
-                ) : doc.status === "ACTIVE" ? (
+                ) : doc.status === "ACTIVE" || doc.status === "ready" ? (
                   <Button
                     size="sm"
                     variant="ghost"

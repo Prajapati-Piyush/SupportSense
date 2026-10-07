@@ -189,18 +189,28 @@ export const REJECT_REASONS = Object.keys(rejectReasonLabel) as RejectReason[];
 
 export const documentStatusLabel: Record<DocumentStatus, string> = {
   QUEUED: "Queued",
+  uploaded: "Uploaded",
   PROCESSING: "Ingesting",
+  processing: "Processing",
   ACTIVE: "Active",
+  ready: "Ready",
   FAILED: "Failed",
+  failed: "Failed",
   ARCHIVED: "Archived",
+  archived: "Archived",
 };
 
 export const documentStatusTone: Record<DocumentStatus, Tone> = {
   QUEUED: "neutral",
+  uploaded: "neutral",
   PROCESSING: "info",
+  processing: "info",
   ACTIVE: "success",
+  ready: "success",
   FAILED: "danger",
+  failed: "danger",
   ARCHIVED: "neutral",
+  archived: "neutral",
 };
 
 export const sourceTypeLabel = {

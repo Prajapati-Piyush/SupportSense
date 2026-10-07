@@ -17,24 +17,20 @@ import {
 } from "@/mock/db";
 import { teams, users } from "@/mock/org";
 import { buildEvalRun, buildMetrics } from "@/mock/metrics";
-import { clone, delay, notFound } from "./client";
+import { clone, delay, notFound, request } from "./client";
 
 /** Admin — KB documents, promotion, metrics and the eval harness (§15 Admin). */
 
-/** `GET /api/admin/documents` */
-export async function listDocuments(user: User): Promise<KbDocument[]> {
-  advanceIngestion();
-  const items = db()
-    .documents.filter((d) => d.tenantId === user.tenantId)
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  return delay(clone(items));
+/** `GET /api/documents` */
+export async function listDocuments(_user: User): Promise<KbDocument[]> {
+  void _user;
+  return request<KbDocument[]>("/api/documents");
 }
 
-export async function getDocument(user: User, id: string): Promise<KbDocument> {
-  advanceIngestion();
-  const doc = db().documents.find((d) => d.id === id && d.tenantId === user.tenantId);
-  if (!doc) notFound("That document");
-  return delay(clone(doc));
+/** `GET /api/documents/:id` */
+export async function getDocument(_user: User, id: string): Promise<KbDocument> {
+  void _user;
+  return request<KbDocument>(`/api/documents/${id}`);
 }
 
 /** Ingestion progresses on a timer, so the QUEUED → ACTIVE transition is visible. */
@@ -88,42 +84,33 @@ function sectionBody(content: string, heading: string): string {
 }
 
 /** `POST /api/admin/documents` — queues an ingest-document job. */
+/** `POST /api/documents` — uploads a file or queues a document. */
 export async function uploadDocument(
-  user: User,
-  input: { title: string; content: string },
+  _user: User,
+  input: { title: string; content?: string; file?: File },
 ): Promise<KbDocument> {
-  const store = db();
-  const headings = [...input.content.matchAll(/^##\s+(.+)$/gm)].map((m) => m[1].trim());
-  const now = new Date().toISOString();
-  const doc: KbDocument = {
-    id: nextId("doc"),
-    tenantId: user.tenantId,
-    title: input.title.trim(),
-    sourceType: "KB_DOC",
-    sourceRefId: null,
-    version: 1,
-    status: "QUEUED",
-    chunkCount: Math.max(1, headings.length),
-    tokenCount: Math.round(input.content.split(/\s+/).length * 1.32),
-    wordCount: input.content.split(/\s+/).filter(Boolean).length,
-    headings: headings.length ? headings : [input.title.trim()],
-    content: input.content,
-    uploadedByName: user.fullName,
-    createdAt: now,
-    updatedAt: now,
-    ingestProgress: 0,
-    failureReason: null,
-    citationCount: 0,
-    lastCitedAt: null,
-  };
-  store.documents.unshift(doc);
-  ingestDue.set(doc.id, Date.now() + INGEST_MS);
-  saveDb();
-  return delay(clone(doc), 700);
+  if (input.file) {
+    const formData = new FormData();
+    formData.append("file", input.file);
+    if (input.title) formData.append("title", input.title);
+    return request<KbDocument>("/api/documents", {
+      method: "POST",
+      body: formData,
+    });
+  }
+
+  return request<KbDocument>("/api/documents", {
+    method: "POST",
+    body: JSON.stringify({
+      title: input.title,
+      content: input.content || "",
+    }),
+  });
 }
 
 /** Re-upload creates a new version rather than mutating in place (§21). */
 export async function reingestDocument(id: string): Promise<KbDocument> {
+  advanceIngestion();
   const doc = db().documents.find((d) => d.id === id);
   if (!doc) notFound("That document");
   doc.status = "QUEUED";
@@ -136,16 +123,11 @@ export async function reingestDocument(id: string): Promise<KbDocument> {
   return delay(clone(doc), 480);
 }
 
-/** `DELETE /api/admin/documents/:id` — archive, never hard-delete. */
+/** `DELETE /api/documents/:id` */
 export async function archiveDocument(id: string): Promise<KbDocument> {
-  const store = db();
-  const doc = store.documents.find((d) => d.id === id);
-  if (!doc) notFound("That document");
-  doc.status = "ARCHIVED";
-  doc.updatedAt = new Date().toISOString();
-  // Chunks are retained so historical citations still resolve.
-  saveDb();
-  return delay(clone(doc), 420);
+  return request<KbDocument>(`/api/documents/${id}`, {
+    method: "DELETE",
+  });
 }
 
 export async function restoreDocument(id: string): Promise<KbDocument> {
@@ -232,13 +214,17 @@ export async function getLatestEval(user: User): Promise<EvalRun> {
 /* ---------------------------------------------------------------- teams */
 
 export async function listTeams(user: User): Promise<(Team & { members: User[] })[]> {
-  const items = teams
-    .filter((t) => t.tenantId === user.tenantId)
-    .map((t) => ({
-      ...t,
-      members: users.filter((u) => u.teamId === t.id),
-    }));
-  return delay(clone(items));
+  try {
+    return await request<(Team & { members: User[] })[]>("/api/teams");
+  } catch {
+    const items = teams
+      .filter((t) => t.tenantId === user.tenantId)
+      .map((t) => ({
+        ...t,
+        members: users.filter((u) => u.teamId === t.id),
+      }));
+    return delay(clone(items));
+  }
 }
 
 export async function listTenantUsers(user: User): Promise<User[]> {

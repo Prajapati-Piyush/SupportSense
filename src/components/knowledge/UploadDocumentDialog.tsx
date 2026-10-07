@@ -29,23 +29,30 @@ export function UploadDocumentDialog({ open, onClose }: { open: boolean; onClose
   const { notify } = useToast();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ title?: string; content?: string }>({});
 
   function reset() {
     setTitle("");
     setContent("");
+    setSelectedFile(null);
     setErrors({});
   }
 
   async function submit() {
     const nextErrors: typeof errors = {};
     if (title.trim().length < 3) nextErrors.title = "Give the document a title.";
-    if (content.trim().length < 80)
+    if (!selectedFile && content.trim().length < 80)
       nextErrors.content = "A document this short won't produce a useful chunk. Add more detail.";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
-    await upload.mutateAsync({ title, content });
+    if (selectedFile) {
+      await upload.mutateAsync({ title, file: selectedFile });
+    } else {
+      await upload.mutateAsync({ title, content });
+    }
+
     notify({
       tone: "success",
       title: "Document queued for ingestion",
@@ -56,9 +63,19 @@ export function UploadDocumentDialog({ open, onClose }: { open: boolean; onClose
   }
 
   async function handleFile(file: File) {
-    const text = await file.text();
-    setContent(text);
+    setSelectedFile(file);
     if (!title.trim()) setTitle(file.name.replace(/\.[^.]+$/, ""));
+    const isText = /\.(md|markdown|txt)$/i.test(file.name);
+    if (isText) {
+      try {
+        const text = await file.text();
+        setContent(text);
+      } catch {
+        // Keep file in selectedFile
+      }
+    } else {
+      setContent(`[File selected: ${file.name} (${Math.round(file.size / 1024)} KB)]`);
+    }
   }
 
   return (
@@ -100,14 +117,14 @@ export function UploadDocumentDialog({ open, onClose }: { open: boolean; onClose
         </Field>
 
         <Field
-          label="Upload a markdown file"
+          label="Upload a document"
           htmlFor="doc-file"
-          hint="Optional — or paste the content below."
+          hint="Supported types: PDF, DOCX, TXT, MD (max 15MB) — or paste markdown below."
         >
           <Input
             id="doc-file"
             type="file"
-            accept=".md,.markdown,.txt"
+            accept=".pdf,.docx,.txt,.md,.markdown"
             className="h-auto py-1.5 file:mr-3 file:rounded file:border-0 file:bg-subtle file:px-2 file:py-1 file:text-[12px] file:font-medium"
             onChange={(event) => {
               const file = event.target.files?.[0];

@@ -52,7 +52,17 @@ export type AbstainReason =
   | "SELFCHECK_FAILED"
   | "GENERATION_FAILED";
 
-export type DocumentStatus = "QUEUED" | "PROCESSING" | "ACTIVE" | "FAILED" | "ARCHIVED";
+export type DocumentStatus =
+  | "QUEUED"
+  | "PROCESSING"
+  | "ACTIVE"
+  | "FAILED"
+  | "ARCHIVED"
+  | "uploaded"
+  | "processing"
+  | "ready"
+  | "failed"
+  | "archived";
 
 /** AI state chip shown on the desk queue (§5, §14). */
 export type AiState = "DRAFT_READY" | "ESCALATED" | "PROCESSING" | "AWAITING_CUSTOMER" | "RESOLVED";

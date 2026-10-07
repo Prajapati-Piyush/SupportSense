@@ -178,6 +178,34 @@ export async function claimTicket(user: User, ticketId: string): Promise<Ticket>
   });
 }
 
+/** `PATCH /api/tickets/:id` or `/api/desk/tickets/:id` — updates ticket status, priority, category or assignment */
+export async function updateTicket(
+  ticketId: string,
+  input: {
+    status?: Ticket["status"];
+    priority?: Ticket["priority"];
+    category?: Ticket["category"];
+    assignedTeamId?: string | null;
+    assigneeId?: string | null;
+    subject?: string;
+  },
+  isDesk = true,
+): Promise<Ticket> {
+  const endpoint = isDesk ? `/api/desk/tickets/${ticketId}` : `/api/tickets/${ticketId}`;
+  return request<Ticket>(endpoint, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function fetchTeams(): Promise<{ id: string; name: string; description: string }[]> {
+  try {
+    return await request<{ id: string; name: string; description: string }[]>("/api/teams");
+  } catch {
+    return [];
+  }
+}
+
 export function listTeamsForTenant(tenantId: string) {
   return teams
     .filter((t) => t.tenantId === tenantId)
