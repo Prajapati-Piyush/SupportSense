@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookOpen, Plus, Search } from "lucide-react";
+import { BookOpen, Plus, Search, Sparkles } from "lucide-react";
+import { GroundedCopilotModal } from "@/components/ai/GroundedCopilotModal";
 import { useDocuments } from "@/lib/queries";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Panel } from "@/components/ui/Panel";
@@ -20,6 +21,7 @@ export function DocumentsView() {
   const [filter, setFilter] = useState<Filter>("ALL");
   const [query, setQuery] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [copilotOpen, setCopilotOpen] = useState(false);
 
   const stats = useMemo(() => {
     const docs = data ?? [];
@@ -68,10 +70,16 @@ export function DocumentsView() {
         title="Knowledge base"
         description="The retrieval corpus: help-centre documents and promoted resolved tickets. Both are retrievable; both are labelled in the Evidence panel."
         actions={
-          <Button variant="primary" onClick={() => setUploadOpen(true)}>
-            <Plus className="size-3.5" aria-hidden />
-            Add document
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={() => setCopilotOpen(true)}>
+              <Sparkles className="size-3.5 text-accent" aria-hidden />
+              Ask Knowledge Base
+            </Button>
+            <Button variant="primary" onClick={() => setUploadOpen(true)}>
+              <Plus className="size-3.5" aria-hidden />
+              Add document
+            </Button>
+          </div>
         }
       />
 
@@ -164,6 +172,7 @@ export function DocumentsView() {
       </div>
 
       <UploadDocumentDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
+      <GroundedCopilotModal open={copilotOpen} onClose={() => setCopilotOpen(false)} />
     </>
   );
 }

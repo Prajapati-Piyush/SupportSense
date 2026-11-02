@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { SendHorizonal } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Field";
@@ -16,6 +16,7 @@ export function MessageComposer({
   helper,
   className,
   minRows = 4,
+  initialValue = "",
 }: {
   onSubmit: (body: string) => Promise<unknown>;
   pending?: boolean;
@@ -25,8 +26,13 @@ export function MessageComposer({
   helper?: ReactNode;
   className?: string;
   minRows?: number;
+  initialValue?: string;
 }) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialValue || "");
+
+  useEffect(() => {
+    if (initialValue) setValue(initialValue);
+  }, [initialValue]);
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

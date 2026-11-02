@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/
 import { useCurrentUser } from "@/components/providers/AuthProvider";
 import * as adminApi from "./api/admin";
 import * as ticketApi from "./api/tickets";
+import * as ragApi from "./api/rag";
 import type { DeskQueueFilters, User } from "./types";
 
 /**
@@ -305,5 +306,13 @@ export function usePeople() {
   return useQuery({
     queryKey: queryKeys.people(user.tenantId),
     queryFn: () => adminApi.listTenantUsers(user),
+  });
+}
+
+/* ------------------------------------------------------------------ rag */
+
+export function useGenerateAnswer() {
+  return useMutation({
+    mutationFn: (params: ragApi.GroundedAnswerRequest) => ragApi.generateAnswer(params),
   });
 }

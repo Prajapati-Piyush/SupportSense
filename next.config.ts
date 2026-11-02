@@ -35,6 +35,14 @@ const nextConfig: NextConfig = {
         destination: `${BACKEND_URL}/api/documents`,
       },
       {
+        source: "/api/rag/:path*",
+        destination: `${BACKEND_URL}/api/rag/:path*`,
+      },
+      {
+        source: "/api/retrieval/:path*",
+        destination: `${BACKEND_URL}/api/retrieval/:path*`,
+      },
+      {
         source: "/api/documents/:path*",
         destination: `${BACKEND_URL}/api/documents/:path*`,
       },

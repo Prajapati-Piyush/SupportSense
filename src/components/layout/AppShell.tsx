@@ -3,7 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, Sparkles, X } from "lucide-react";
+import { GroundedCopilotModal } from "@/components/ai/GroundedCopilotModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { navigationFor } from "@/components/navigation/nav-config";
 import { SidebarNav } from "@/components/navigation/SidebarNav";
@@ -37,6 +38,7 @@ export function AppShell({
   const router = useRouter();
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [copilotOpen, setCopilotOpen] = useState(false);
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -84,6 +86,28 @@ export function AppShell({
       <div className="ss-scroll mt-6 min-h-0 flex-1 overflow-y-auto pb-4">
         <SidebarNav sections={sections} onNavigate={() => setDrawerOpen(false)} />
       </div>
+
+      {user.role !== "CUSTOMER" && (
+        <div className="mb-2 px-1">
+          <button
+            type="button"
+            onClick={() => {
+              setDrawerOpen(false);
+              setCopilotOpen(true);
+            }}
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-accent-border/70 bg-accent-subtle/50 px-2.5 py-2 text-[12px] font-medium text-accent hover:border-accent hover:bg-accent-subtle transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Sparkles className="size-3.5 text-accent" />
+              <span>Ask AI Copilot</span>
+            </span>
+            <span className="rounded bg-accent/15 px-1 py-0.5 text-[10px] font-mono text-accent">
+              RAG
+            </span>
+          </button>
+        </div>
+      )}
+
       <div className="border-t border-line pt-2">
         <UserMenu user={user} settingsHref={settingsHref} />
       </div>
@@ -97,15 +121,29 @@ export function AppShell({
         <Link href={homePathFor(user.role)} className="rounded-md">
           <Wordmark subtitle={user.tenantName} />
         </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setDrawerOpen(true)}
-          aria-label="Open navigation menu"
-          aria-expanded={drawerOpen}
-        >
-          <Menu className="size-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {user.role !== "CUSTOMER" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCopilotOpen(true)}
+              aria-label="Ask AI Copilot"
+              className="text-accent gap-1 px-2"
+            >
+              <Sparkles className="size-3.5" />
+              <span className="text-[11px]">Copilot</span>
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open navigation menu"
+            aria-expanded={drawerOpen}
+          >
+            <Menu className="size-4" />
+          </Button>
+        </div>
       </header>
 
       {/* ------------------------------------------------ mobile drawer */}
@@ -151,6 +189,14 @@ export function AppShell({
       <main id="main" className="min-w-0 flex-1">
         {children}
       </main>
+
+      {/* Grounded AI Copilot Modal for Staff & Admin */}
+      {user.role !== "CUSTOMER" && (
+        <GroundedCopilotModal
+          open={copilotOpen}
+          onClose={() => setCopilotOpen(false)}
+        />
+      )}
     </div>
   );
 }
