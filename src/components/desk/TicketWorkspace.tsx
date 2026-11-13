@@ -280,6 +280,17 @@ export function TicketWorkspace({ ticketId }: { ticketId: string }) {
         <Badge tone="neutral">
           {ticket.assignedTeamName ? `${ticket.assignedTeamName} team` : "Unassigned team"}
         </Badge>
+        {ticket.assigneeName ? (
+          <Badge tone="accent" className="flex items-center gap-1.5">
+            <span className="font-normal text-fg-subtle">Assigned:</span>
+            <span className="font-medium">{ticket.assigneeName}</span>
+            {ticket.assigneeTitle ? (
+              <span className="text-[11px] opacity-80">({ticket.assigneeTitle})</span>
+            ) : null}
+          </Badge>
+        ) : (
+          <Badge tone="neutral">Unassigned agent</Badge>
+        )}
         <Badge tone="neutral">Status · {ticketStatusLabel[ticket.status]}</Badge>
         {ticket.inKb ? <Badge tone="success">In knowledge base</Badge> : null}
         <Link href="/desk" className={buttonClasses("ghost", "sm", "ml-auto")}>

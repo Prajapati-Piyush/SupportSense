@@ -162,11 +162,16 @@ export async function reopenTicket(user: User, ticketId: string): Promise<Ticket
   return detail.ticket;
 }
 
-/** `POST /api/desk/tickets/:id/assign` — assigns team. */
-export async function assignTeam(ticketId: string, teamId: string): Promise<Ticket> {
+/** `POST /api/desk/tickets/:id/assign` — assigns team and/or employee. */
+export async function assignTeam(
+  ticketId: string,
+  teamId?: string | null,
+  assigneeId?: string | null,
+  note?: string | null,
+): Promise<Ticket> {
   return request<Ticket>(`/api/desk/tickets/${ticketId}/assign`, {
     method: "POST",
-    body: JSON.stringify({ teamId }),
+    body: JSON.stringify({ teamId, assigneeId, note }),
   });
 }
 

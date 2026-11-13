@@ -11,7 +11,7 @@ import {
   PRIORITIES,
   priorityLabel,
 } from "@/lib/domain";
-import { listTeamsForTenant } from "@/lib/api/tickets";
+import { useTeams } from "@/lib/queries";
 
 const AI_STATES = ["DRAFT_READY", "ESCALATED", "PROCESSING", "AWAITING_CUSTOMER", "RESOLVED"] as const;
 
@@ -24,7 +24,21 @@ export function QueueFilters({
   onChange: (next: DeskQueueFilters) => void;
   user: User;
 }) {
-  const teams = user.role === "ADMIN" ? listTeamsForTenant(user.tenantId) : [];
+  const teamsQuery = useTeams();
+  const teams =
+    user.role === "ADMIN"
+      ? (teamsQuery.data ?? []).filter(
+          (t) =>
+            (t.members && t.members.length > 0) ||
+            [
+              "Technical Support",
+              "Billing & Finance",
+              "Account Management",
+              "Sales & Operations",
+              "Customer Support",
+            ].includes(t.name),
+        )
+      : [];
   const set = (patch: Partial<DeskQueueFilters>) => onChange({ ...filters, ...patch, page: 1 });
 
   const active =

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Ticket } from "@/lib/types";
 import { AiStateBadge, CategoryBadge, PriorityBadge } from "@/components/tickets/StatusBadge";
 import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/States";
 import { relativeTime } from "@/lib/format";
 import { cn } from "@/lib/cn";
@@ -66,10 +67,10 @@ export function QueueTable({
           <tr className="border-b border-line text-left">
             <Th className="w-[104px]">Priority</Th>
             <Th>Ticket</Th>
-            <Th className="w-[128px]">Category</Th>
-            <Th className="w-[152px]">AI state</Th>
-            {showTeam ? <Th className="w-[104px]">Team</Th> : null}
-            <Th className="w-[128px]">Assignee</Th>
+            <Th className="w-[124px]">Category</Th>
+            <Th className="w-[148px]">AI state</Th>
+            {showTeam ? <Th className="w-[144px]">Department</Th> : null}
+            <Th className="w-[180px]">Assignee</Th>
             <Th className="w-[104px] text-right">Updated</Th>
           </tr>
         </thead>
@@ -110,17 +111,30 @@ export function QueueTable({
               </Td>
               {showTeam ? (
                 <Td>
-                  <span className="text-[12px] text-fg-muted">{ticket.assignedTeamName ?? "—"}</span>
+                  {ticket.assignedTeamName ? (
+                    <Badge tone="neutral" className="truncate max-w-[136px]">
+                      {ticket.assignedTeamName}
+                    </Badge>
+                  ) : (
+                    <span className="text-[12px] text-fg-subtle">—</span>
+                  )}
                 </Td>
               ) : null}
               <Td>
                 {ticket.assigneeName ? (
-                  <span className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <Avatar name={ticket.assigneeName} size="sm" />
-                    <span className="truncate text-[12px] text-fg-muted">
-                      {ticket.assigneeName.split(" ")[0]}
-                    </span>
-                  </span>
+                    <div className="flex min-w-0 flex-col leading-tight">
+                      <span className="truncate text-[12px] font-medium text-fg">
+                        {ticket.assigneeName}
+                      </span>
+                      {ticket.assigneeTitle ? (
+                        <span className="truncate text-[11px] text-fg-subtle">
+                          {ticket.assigneeTitle}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
                 ) : (
                   <span className="text-[12px] text-fg-subtle">Unassigned</span>
                 )}
@@ -160,6 +174,22 @@ export function QueueTable({
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <AiStateBadge status={ticket.status} />
                 <CategoryBadge category={ticket.category} />
+                {ticket.assignedTeamName ? (
+                  <Badge tone="neutral">
+                    {ticket.assignedTeamName}
+                  </Badge>
+                ) : null}
+                {ticket.assigneeName ? (
+                  <span className="inline-flex items-center gap-1 rounded bg-subtle px-1.5 py-0.5 text-[11px] text-fg-muted">
+                    <Avatar name={ticket.assigneeName} size="sm" />
+                    <span className="font-medium text-fg">{ticket.assigneeName}</span>
+                    {ticket.assigneeTitle ? (
+                      <span className="text-fg-subtle">· {ticket.assigneeTitle}</span>
+                    ) : null}
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-fg-subtle">Unassigned</span>
+                )}
                 <time dateTime={ticket.updatedAt} className="ml-auto text-[11px] text-fg-subtle">
                   {relativeTime(ticket.updatedAt)}
                 </time>

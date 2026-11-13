@@ -15,7 +15,6 @@ import {
   normaliseProblem,
   normaliseSolution,
 } from "@/mock/db";
-import { teams, users } from "@/mock/org";
 import { buildEvalRun, buildMetrics } from "@/mock/metrics";
 import { clone, delay, notFound, request } from "./client";
 
@@ -213,20 +212,12 @@ export async function getLatestEval(user: User): Promise<EvalRun> {
 
 /* ---------------------------------------------------------------- teams */
 
-export async function listTeams(user: User): Promise<(Team & { members: User[] })[]> {
-  try {
-    return await request<(Team & { members: User[] })[]>("/api/teams");
-  } catch {
-    const items = teams
-      .filter((t) => t.tenantId === user.tenantId)
-      .map((t) => ({
-        ...t,
-        members: users.filter((u) => u.teamId === t.id),
-      }));
-    return delay(clone(items));
-  }
+export async function listTeams(_user: User): Promise<(Team & { members: User[] })[]> {
+  void _user;
+  return request<(Team & { members: User[] })[]>("/api/teams");
 }
 
-export async function listTenantUsers(user: User): Promise<User[]> {
-  return delay(clone(users.filter((u) => u.tenantId === user.tenantId)));
+export async function listTenantUsers(_user: User): Promise<User[]> {
+  void _user;
+  return request<User[]>("/api/users");
 }

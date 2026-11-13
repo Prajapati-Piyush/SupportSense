@@ -2,76 +2,96 @@ import type { Team, Tenant, User } from "@/lib/types";
 import { daysAgo } from "./util";
 
 /**
- * §29 — two tenants, so multi-tenancy is demonstrable rather than theoretical.
- * Every user shares the password `demo1234`.
+ * SupportSense Organization & Demo Personas.
+ * Demo displays Acme Cloud as the single enterprise organization.
+ * (Globex database records are preserved in backend PostgreSQL for multi-tenant isolation verification).
+ * Every seeded account uses the password `demo1234`.
  */
 
 export const DEMO_PASSWORD = "demo1234";
 
 export const tenants: Tenant[] = [
   { id: "t-acme", name: "Acme Cloud", slug: "acme" },
-  { id: "t-globex", name: "Globex Retail", slug: "globex" },
 ];
 
 export const teams: Team[] = [
   {
-    id: "tm-acme-billing",
+    id: "tm-acme-tech",
     tenantId: "t-acme",
-    name: "Billing",
-    description: "Invoices, refunds, plan changes and payment failures.",
-    memberIds: ["u-rahul"],
+    name: "Technical Support",
+    description: "API, cloud infrastructure, integrations, rate limits and system incidents.",
+    memberIds: ["u-daniel"],
   },
   {
-    id: "tm-acme-technical",
+    id: "tm-acme-billing",
     tenantId: "t-acme",
-    name: "Technical",
-    description: "API, integrations, rate limits and incident follow-up.",
-    memberIds: ["u-daniel"],
+    name: "Billing & Finance",
+    description: "Invoices, refunds, payment processing, accounting and tax documentation.",
+    memberIds: ["u-rahul", "u-vikram"],
   },
   {
     id: "tm-acme-account",
     tenantId: "t-acme",
-    name: "Account",
-    description: "Access, SSO, seats, data export and account lifecycle.",
+    name: "Account Management",
+    description: "Enterprise access, SSO, contracts, seat allocations and account lifecycle.",
     memberIds: ["u-sana"],
   },
   {
-    id: "tm-globex-orders",
-    tenantId: "t-globex",
-    name: "Orders",
-    description: "Order status, delivery windows and address changes.",
-    memberIds: ["u-jonas"],
+    id: "tm-acme-sales",
+    tenantId: "t-acme",
+    name: "Sales & Operations",
+    description: "Plan upgrades, enterprise renewals, operations, SLA terms and compliance.",
+    memberIds: ["u-chloe"],
   },
   {
-    id: "tm-globex-returns",
-    tenantId: "t-globex",
-    name: "Returns",
-    description: "Returns, exchanges, damaged goods and refunds.",
-    memberIds: ["u-ines"],
-  },
-  {
-    id: "tm-globex-support",
-    tenantId: "t-globex",
-    name: "Support",
-    description: "Accounts, loyalty programme and everything else.",
-    memberIds: ["u-kofi"],
+    id: "tm-acme-support",
+    tenantId: "t-acme",
+    name: "Customer Support",
+    description: "General inquiries, onboarding, product guidance and initial ticket triage.",
+    memberIds: ["u-alex", "u-meera"],
   },
 ];
 
 type SeedUser = Omit<User, "tenantName" | "tenantSlug" | "teamName">;
 
-const seedUsers: SeedUser[] = [
-  // --- Acme Cloud ---------------------------------------------------------
+export const seedUsers: SeedUser[] = [
+  // --- Admin ----------------------------------------------------------------
   {
     id: "u-meera",
     tenantId: "t-acme",
     email: "meera@acme.test",
     fullName: "Meera Iyer",
     role: "ADMIN",
-    teamId: "tm-acme-billing",
-    title: "Support Lead",
+    teamId: "tm-acme-support",
+    title: "Head of Customer Operations",
     isActive: true,
     createdAt: daysAgo(420),
+  },
+
+  // --- Technical Support ---------------------------------------------------
+  {
+    id: "u-daniel",
+    tenantId: "t-acme",
+    email: "daniel@acme.test",
+    fullName: "Daniel Osei",
+    role: "STAFF",
+    teamId: "tm-acme-tech",
+    title: "Technical Support Engineer",
+    isActive: true,
+    createdAt: daysAgo(355),
+  },
+
+  // --- Billing & Finance (Multiple employees) ------------------------------
+  {
+    id: "u-vikram",
+    tenantId: "t-acme",
+    email: "vikram@acme.test",
+    fullName: "Vikram Mehta",
+    role: "STAFF",
+    teamId: "tm-acme-billing",
+    title: "Senior Accountant",
+    isActive: true,
+    createdAt: daysAgo(370),
   },
   {
     id: "u-rahul",
@@ -80,32 +100,51 @@ const seedUsers: SeedUser[] = [
     fullName: "Rahul Verma",
     role: "STAFF",
     teamId: "tm-acme-billing",
-    title: "Billing Support",
+    title: "Billing Specialist",
     isActive: true,
     createdAt: daysAgo(390),
   },
-  {
-    id: "u-daniel",
-    tenantId: "t-acme",
-    email: "daniel@acme.test",
-    fullName: "Daniel Osei",
-    role: "STAFF",
-    teamId: "tm-acme-technical",
-    title: "Technical Support",
-    isActive: true,
-    createdAt: daysAgo(355),
-  },
+
+  // --- Account Management --------------------------------------------------
   {
     id: "u-sana",
     tenantId: "t-acme",
     email: "sana@acme.test",
-    fullName: "Sana Khalid",
+    fullName: "Sana Patel",
     role: "STAFF",
     teamId: "tm-acme-account",
-    title: "Account Support",
+    title: "Senior Account Manager",
     isActive: true,
     createdAt: daysAgo(300),
   },
+
+  // --- Sales & Operations --------------------------------------------------
+  {
+    id: "u-chloe",
+    tenantId: "t-acme",
+    email: "chloe@acme.test",
+    fullName: "Chloe Martin",
+    role: "STAFF",
+    teamId: "tm-acme-sales",
+    title: "Sales Operations Lead",
+    isActive: true,
+    createdAt: daysAgo(280),
+  },
+
+  // --- Customer Support ----------------------------------------------------
+  {
+    id: "u-alex",
+    tenantId: "t-acme",
+    email: "alex@acme.test",
+    fullName: "Alex Rivera",
+    role: "STAFF",
+    teamId: "tm-acme-support",
+    title: "Customer Support Agent",
+    isActive: true,
+    createdAt: daysAgo(310),
+  },
+
+  // --- Customer ------------------------------------------------------------
   {
     id: "u-priya",
     tenantId: "t-acme",
@@ -117,132 +156,10 @@ const seedUsers: SeedUser[] = [
     isActive: true,
     createdAt: daysAgo(240),
   },
-  {
-    id: "u-tom",
-    tenantId: "t-acme",
-    email: "tom@northwind.test",
-    fullName: "Tom Becker",
-    role: "CUSTOMER",
-    teamId: null,
-    title: null,
-    isActive: true,
-    createdAt: daysAgo(190),
-  },
-  {
-    id: "u-aisha",
-    tenantId: "t-acme",
-    email: "aisha@lumen.test",
-    fullName: "Aisha Rahman",
-    role: "CUSTOMER",
-    teamId: null,
-    title: null,
-    isActive: true,
-    createdAt: daysAgo(150),
-  },
-  {
-    id: "u-marco",
-    tenantId: "t-acme",
-    email: "marco@vellum.test",
-    fullName: "Marco Silva",
-    role: "CUSTOMER",
-    teamId: null,
-    title: null,
-    isActive: true,
-    createdAt: daysAgo(96),
-  },
-  // --- Globex Retail ------------------------------------------------------
-  {
-    id: "u-lena",
-    tenantId: "t-globex",
-    email: "lena@globex.test",
-    fullName: "Lena Fischer",
-    role: "ADMIN",
-    teamId: "tm-globex-support",
-    title: "Head of Customer Care",
-    isActive: true,
-    createdAt: daysAgo(410),
-  },
-  {
-    id: "u-jonas",
-    tenantId: "t-globex",
-    email: "jonas@globex.test",
-    fullName: "Jonas Weber",
-    role: "STAFF",
-    teamId: "tm-globex-orders",
-    title: "Orders Support",
-    isActive: true,
-    createdAt: daysAgo(340),
-  },
-  {
-    id: "u-ines",
-    tenantId: "t-globex",
-    email: "ines@globex.test",
-    fullName: "Ines Duarte",
-    role: "STAFF",
-    teamId: "tm-globex-returns",
-    title: "Returns Support",
-    isActive: true,
-    createdAt: daysAgo(320),
-  },
-  {
-    id: "u-kofi",
-    tenantId: "t-globex",
-    email: "kofi@globex.test",
-    fullName: "Kofi Mensah",
-    role: "STAFF",
-    teamId: "tm-globex-support",
-    title: "Customer Support",
-    isActive: true,
-    createdAt: daysAgo(210),
-  },
-  {
-    id: "u-elena",
-    tenantId: "t-globex",
-    email: "elena@example.com",
-    fullName: "Elena Rossi",
-    role: "CUSTOMER",
-    teamId: null,
-    title: null,
-    isActive: true,
-    createdAt: daysAgo(160),
-  },
-  {
-    id: "u-hiro",
-    tenantId: "t-globex",
-    email: "hiro@example.com",
-    fullName: "Hiro Tanaka",
-    role: "CUSTOMER",
-    teamId: null,
-    title: null,
-    isActive: true,
-    createdAt: daysAgo(130),
-  },
-  {
-    id: "u-sam",
-    tenantId: "t-globex",
-    email: "sam@example.com",
-    fullName: "Sam Okoro",
-    role: "CUSTOMER",
-    teamId: null,
-    title: null,
-    isActive: true,
-    createdAt: daysAgo(88),
-  },
-  {
-    id: "u-nadia",
-    tenantId: "t-globex",
-    email: "nadia@example.com",
-    fullName: "Nadia Petrova",
-    role: "CUSTOMER",
-    teamId: null,
-    title: null,
-    isActive: true,
-    createdAt: daysAgo(54),
-  },
 ];
 
 export const users: User[] = seedUsers.map((u) => {
-  const tenant = tenants.find((t) => t.id === u.tenantId)!;
+  const tenant = tenants.find((t) => t.id === u.tenantId) ?? tenants[0];
   const team = teams.find((t) => t.id === u.teamId) ?? null;
   return {
     ...u,
@@ -258,16 +175,98 @@ export function findUser(id: string): User | undefined {
 
 export function userDisplayTitle(user: User): string | null {
   if (!user.title) return null;
-  const tenant = tenants.find((t) => t.id === user.tenantId)!;
-  return `${tenant.name} ${user.teamName ?? user.title}`;
+  return `${user.title}${user.teamName ? ` · ${user.teamName}` : ""}`;
 }
 
-/** Accounts surfaced as one-click logins on the demo login screen. */
+/** Demo accounts surfaced on the demo login screen, categorized by persona. */
+export const demoPersonas = {
+  admin: [
+    {
+      userId: "u-meera",
+      fullName: "Meera Iyer",
+      title: "Head of Customer Operations",
+      department: "Customer Operations",
+      email: "meera@acme.test",
+      role: "ADMIN" as const,
+    },
+  ],
+  staff: [
+    {
+      userId: "u-daniel",
+      fullName: "Daniel Osei",
+      title: "Technical Support Engineer",
+      department: "Technical Support",
+      email: "daniel@acme.test",
+      role: "STAFF" as const,
+    },
+    {
+      userId: "u-vikram",
+      fullName: "Vikram Mehta",
+      title: "Senior Accountant",
+      department: "Billing & Finance",
+      email: "vikram@acme.test",
+      role: "STAFF" as const,
+    },
+    {
+      userId: "u-rahul",
+      fullName: "Rahul Verma",
+      title: "Billing Specialist",
+      department: "Billing & Finance",
+      email: "rahul@acme.test",
+      role: "STAFF" as const,
+    },
+    {
+      userId: "u-sana",
+      fullName: "Sana Patel",
+      title: "Senior Account Manager",
+      department: "Account Management",
+      email: "sana@acme.test",
+      role: "STAFF" as const,
+    },
+    {
+      userId: "u-chloe",
+      fullName: "Chloe Martin",
+      title: "Sales Operations Lead",
+      department: "Sales & Operations",
+      email: "chloe@acme.test",
+      role: "STAFF" as const,
+    },
+    {
+      userId: "u-alex",
+      fullName: "Alex Rivera",
+      title: "Customer Support Agent",
+      department: "Customer Support",
+      email: "alex@acme.test",
+      role: "STAFF" as const,
+    },
+  ],
+  customer: [
+    {
+      userId: "u-priya",
+      fullName: "Priya Nair",
+      title: "Enterprise Customer",
+      department: "Acme Customer Portal",
+      email: "priya@example.com",
+      role: "CUSTOMER" as const,
+    },
+  ],
+};
+
+/** Flat array for backward compatibility with components that read `demoAccounts`. */
 export const demoAccounts = [
-  { userId: "u-priya", label: "Customer", hint: "Priya Nair · Acme Cloud" },
-  { userId: "u-rahul", label: "Support agent", hint: "Rahul Verma · Billing" },
-  { userId: "u-meera", label: "Admin", hint: "Meera Iyer · Support Lead" },
-  { userId: "u-elena", label: "Customer", hint: "Elena Rossi · Globex Retail" },
-  { userId: "u-jonas", label: "Support agent", hint: "Jonas Weber · Orders" },
-  { userId: "u-lena", label: "Admin", hint: "Lena Fischer · Globex Retail" },
+  ...demoPersonas.admin.map((a) => ({
+    userId: a.userId,
+    label: "Company Admin",
+    hint: `${a.fullName} · ${a.title}`,
+  })),
+  ...demoPersonas.staff.map((s) => ({
+    userId: s.userId,
+    label: s.department,
+    hint: `${s.fullName} · ${s.title}`,
+  })),
+  ...demoPersonas.customer.map((c) => ({
+    userId: c.userId,
+    label: "Customer",
+    hint: `${c.fullName} · Demo Customer`,
+  })),
 ] as const;

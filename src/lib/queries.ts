@@ -162,11 +162,22 @@ export function useReopenTicket(ticketId: string) {
   });
 }
 
+export interface AssignTicketInput {
+  teamId?: string | null;
+  assigneeId?: string | null;
+  note?: string | null;
+}
+
 export function useAssignTeam(ticketId: string) {
   const user = useCurrentUser();
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (teamId: string) => ticketApi.assignTeam(ticketId, teamId),
+    mutationFn: (input: string | AssignTicketInput) => {
+      if (typeof input === "string") {
+        return ticketApi.assignTeam(ticketId, input);
+      }
+      return ticketApi.assignTeam(ticketId, input.teamId, input.assigneeId, input.note);
+    },
     onSuccess: () => invalidateTicket(client, user, ticketId),
   });
 }

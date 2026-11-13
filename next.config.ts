@@ -62,6 +62,14 @@ const nextConfig: NextConfig = {
         source: "/api/teams/:path*",
         destination: `${BACKEND_URL}/api/teams/:path*`,
       },
+      {
+        source: "/api/users",
+        destination: `${BACKEND_URL}/api/users`,
+      },
+      {
+        source: "/api/users/:path*",
+        destination: `${BACKEND_URL}/api/users/:path*`,
+      },
     ];
   },
 };
