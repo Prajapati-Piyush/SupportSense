@@ -9,7 +9,8 @@
 
 export const API_MODE: "mock" | "http" = "http";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+// Proxies through Next.js server rewrites using BACKEND_URL configured in next.config.ts
+const API_BASE_URL = "";
 
 /**
  * Standard typed HTTP fetch client for SupportSense backend.
