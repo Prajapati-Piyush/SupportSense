@@ -25,27 +25,38 @@ export function DocumentsView() {
 
   const stats = useMemo(() => {
     const docs = data ?? [];
-    const active = docs.filter((d) => d.status === "ACTIVE");
+    const active = docs.filter((d) => d.status === "ACTIVE" || d.status === "ready");
     return {
       active: active.length,
-      chunks: active.reduce((sum, d) => sum + d.chunkCount, 0),
+      chunks: active.reduce((sum, d) => sum + (d.chunkCount || 0), 0),
       fromTickets: active.filter((d) => d.sourceType === "RESOLVED_TICKET").length,
-      needsAttention: docs.filter((d) => d.status === "FAILED").length,
+      needsAttention: docs.filter((d) => d.status === "FAILED" || d.status === "failed").length,
     };
   }, [data]);
 
   const visible = useMemo(() => {
     let docs = data ?? [];
-    if (filter === "KB_DOC") docs = docs.filter((d) => d.sourceType === "KB_DOC" && d.status !== "ARCHIVED");
-    if (filter === "RESOLVED_TICKET") docs = docs.filter((d) => d.sourceType === "RESOLVED_TICKET");
-    if (filter === "IN_FLIGHT")
-      docs = docs.filter((d) => d.status === "QUEUED" || d.status === "PROCESSING" || d.status === "FAILED");
-    if (filter === "ARCHIVED") docs = docs.filter((d) => d.status === "ARCHIVED");
-    if (filter === "ALL") docs = docs.filter((d) => d.status !== "ARCHIVED");
+    const isArchived = (s: string) => s === "ARCHIVED" || s === "archived";
+    const isInFlight = (s: string) =>
+      s === "QUEUED" ||
+      s === "PROCESSING" ||
+      s === "uploaded" ||
+      s === "processing" ||
+      s === "FAILED" ||
+      s === "failed";
+
+    if (filter === "KB_DOC") docs = docs.filter((d) => d.sourceType === "KB_DOC" && !isArchived(d.status));
+    if (filter === "RESOLVED_TICKET")
+      docs = docs.filter((d) => d.sourceType === "RESOLVED_TICKET" && !isArchived(d.status));
+    if (filter === "IN_FLIGHT") docs = docs.filter((d) => isInFlight(d.status));
+    if (filter === "ARCHIVED") docs = docs.filter((d) => isArchived(d.status));
+    if (filter === "ALL") docs = docs.filter((d) => !isArchived(d.status));
     if (query.trim()) {
       const q = query.toLowerCase();
       docs = docs.filter(
-        (d) => d.title.toLowerCase().includes(q) || d.headings.some((h) => h.toLowerCase().includes(q)),
+        (d) =>
+          d.title.toLowerCase().includes(q) ||
+          (d.headings && d.headings.some((h) => h.toLowerCase().includes(q))),
       );
     }
     return docs;
@@ -53,14 +64,21 @@ export function DocumentsView() {
 
   const counts = useMemo(() => {
     const docs = data ?? [];
+    const isArchived = (s: string) => s === "ARCHIVED" || s === "archived";
+    const isInFlight = (s: string) =>
+      s === "QUEUED" ||
+      s === "PROCESSING" ||
+      s === "uploaded" ||
+      s === "processing" ||
+      s === "FAILED" ||
+      s === "failed";
+
     return {
-      ALL: docs.filter((d) => d.status !== "ARCHIVED").length,
-      KB_DOC: docs.filter((d) => d.sourceType === "KB_DOC" && d.status !== "ARCHIVED").length,
-      RESOLVED_TICKET: docs.filter((d) => d.sourceType === "RESOLVED_TICKET").length,
-      IN_FLIGHT: docs.filter(
-        (d) => d.status === "QUEUED" || d.status === "PROCESSING" || d.status === "FAILED",
-      ).length,
-      ARCHIVED: docs.filter((d) => d.status === "ARCHIVED").length,
+      ALL: docs.filter((d) => !isArchived(d.status)).length,
+      KB_DOC: docs.filter((d) => d.sourceType === "KB_DOC" && !isArchived(d.status)).length,
+      RESOLVED_TICKET: docs.filter((d) => d.sourceType === "RESOLVED_TICKET" && !isArchived(d.status)).length,
+      IN_FLIGHT: docs.filter((d) => isInFlight(d.status)).length,
+      ARCHIVED: docs.filter((d) => isArchived(d.status)).length,
     };
   }, [data]);
 
